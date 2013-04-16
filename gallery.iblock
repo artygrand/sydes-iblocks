@@ -1,0 +1,40 @@
+<?php
+/*
+* Simply gallery infoblock
+* works with ckfinder(preview) and lightbox2(lightbox[gal])
+*
+* @author ArtyGrand
+* @since 1.2
+*/
+$pic = '<a href="%1$s" rel="lightbox[gal]"><img src="%2$s" alt="%1$s"></a>';
+
+if(!isset($folder) or !is_dir('upload/images/' . $folder)){
+	return;
+}
+	$imagePerPage = 1000;
+	$files = array();
+	foreach(glob('upload/images/' . $folder . '/{*.jpg,*.jpeg,*.gif,*.png}', GLOB_BRACE) as $image){
+		$thumb = str_replace('upload/images/', 'upload/_thumbs/Images/', $image);
+		if (is_file($thumb)){
+			$files[$image]['thumb'] = $thumb;
+		} else {
+			$files[$image]['thumb'] = $image;
+		}
+		$files[$image]['path'] = $image;
+	}
+	$countOfPics = count($files);
+	if (!empty($_GET['skip']) and $_GET['skip'] > -1){
+		$skip = $_GET['skip'];
+	} else {
+		$skip = 0;
+	}
+	$files = array_slice($files, $skip, $imagePerPage, true);
+
+	$gallcode = '' . PHP_EOL;
+
+	foreach($files as $img){
+		$gallcode .= sprintf($pic, $img['path'], $img['thumb']);
+	}
+
+	echo $gallcode;
+?>
