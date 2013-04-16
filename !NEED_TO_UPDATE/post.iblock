@@ -1,0 +1,10 @@
+<?php
+$childs = sqlite_array_query($db, "SELECT * FROM posts WHERE stream = '$stream' and status = 1 ORDER BY id DESC;");
+
+foreach($childs as $child){
+$child['content'] = str_replace('&quot;', '"', $child['content']);
+ 	echo '
+				<p class="time">' . $child['data'] . '</p>
+				<p>' . $child['content'] . '</p>';
+}
+?>

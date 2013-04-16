@@ -1,0 +1,69 @@
+<?php
+$format = '
+	<li>
+		<div class="news_img">
+			<img src="%5$s" alt="%1$s" style="width:100; height:100;">
+		</div>
+		<div class="news_text">
+			%4$s
+			<h2><a href="news/%2$s" title="перейти к статье %1$s">%1$s</a></h2>
+			%3$s
+		</div>
+	</li>';
+if(isset($_GET['page'])){
+	$skip = (int)$_GET['page'] < 1 ? 0 : (int)$_GET['page'] - 1;
+} else {
+	$skip = 0;
+}
+$limit = $skip * $q . ',' . $q;
+$stmt = $db -> query("SELECT pages_content.title, pages_content.content, pages.alias, pages.id FROM pages_content, pages
+					WHERE pages.type = 'news' AND pages.parent_id <> 0 AND pages.status = 1 AND pages_content.page_id = pages.id AND pages_content.locale = '{$l}' ORDER BY id DESC LIMIT {$limit}");
+$data = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+if(!$data){
+	return;
+}
+echo '					<ul class="news_list">';
+foreach($data as $d){
+	$stmt = $db -> query("SELECT key, value FROM pages_meta WHERE page_id = {$d['id']}");
+	$meta = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+	foreach($meta as $m){
+		$d[$m['key']] = $m['value'];
+	}
+	$month_bef = array(".01.", ".02.", ".03.", ".04.", ".05.", ".06.", ".07.", ".08.", ".09.", ".10.", ".11.", ".12.");
+	$month_aft = array(" января ", " февраля ", " марта ", " апреля ", " мая ", " июня ", " июля ", " августа ", " сентября ", " октября ", " ноября ", " декабря ");
+	$d['date'] = str_replace($month_bef, $month_aft, $d['date']);
+	
+	$prevsearch = strrpos($d['content'], '<div tag="more"></div>');
+	if ($prevsearch !== false){
+		$d['content'] = strip_tags(substr($d['content'], 0, $prevsearch), '<p>');
+	} else {
+		$d['content'] = strip_tags($d['content'], '<br>');
+		$d['content'] = explode(' ', $d['content'], 51);
+		$todell = array_pop($d['content']); 
+		$d['content'] = '<p>' . implode(" ", $d['content']) . '</p>';
+	}
+	printf($format, $d['title'], $d['alias'], $d['content'], $d['date'], $d['image']);
+}
+$stmt = $db -> query("SELECT count(id) FROM pages WHERE type = 'news' AND pages.status = 1 AND pages.parent_id <> 0");
+$count = $stmt -> fetchColumn();
+$pc = ceil($count / $q);
+
+echo '					</ul>
+					<div class="pagingDigits">';
+$skip++;
+if ($skip > 1)
+	echo '<li class="pagePrev"><a href="news?page=',$skip - 1,'"></a></li>';
+else
+	echo '<li class="pagePrev"></li>';
+for ($i = 1; $i <= $pc; $i++){
+	if ($i == $skip){
+		echo '<li class="active">' . $i . '</li>';
+	} else {
+		echo '<li><a href="news?page=' . $i . '">' . $i . '</a></li>';
+	}
+}
+if ($skip < $pc)
+	echo '<li class="pageNext"><a href="news?page=', $skip + 1,'"></a></li></div>';
+else
+	echo '<li class="pageNext"></li></div>';
+?>
