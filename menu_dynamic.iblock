@@ -1,0 +1,39 @@
+<?php
+if (!$page) return;
+$temps = "'" . implode("','", $conf['final_template']) . "'";
+if ($page[0]['parent_id'] > 0){
+  $semiroot = substr($page[0]['fullpath'], 0, strpos($page[0]['fullpath'], '/', 1));
+  $stmt = $db -> query("SELECT title FROM pages_content WHERE page_id = '{$page[0]['parent_id']}' AND locale = '{$locale}'");
+  $parent_title = $stmt -> fetchColumn();
+  $stmt = $db -> query("SELECT pages.id, pages.fullpath, pages_content.title, pages.parent_id FROM pages, pages_content WHERE pages.fullpath LIKE '{$semiroot}' || '/%' AND pages.status = 1 AND pages.template NOT IN ({$temps}) AND pages.id = pages_content.page_id AND pages_content.locale = '{$locale}' ORDER BY fullpath;");
+  $childs = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+} else {
+  $parent_title = $page[0]['title'];
+  $stmt = $db -> query("SELECT pages.id, pages.fullpath, pages_content.title, pages.parent_id FROM pages, pages_content WHERE pages.fullpath LIKE '{$page[0]['fullpath']}' || '/%' AND pages.status = 1 AND pages.template NOT IN ({$temps}) AND pages.id = pages_content.page_id AND pages_content.locale = '{$locale}' ORDER BY fullpath");
+  $childs = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+}
+echo '<ul id="submenu">' . PHP_EOL;
+if ($childs){
+  $prev_id = $childs[0]['id'];
+  $prev_parent = $childs[0]['parent_id'];
+  foreach($childs as $child){
+	if($prev_parent != $child['parent_id']){
+	  if ($prev_id == $child['parent_id']){
+		echo '<ul>' . PHP_EOL;
+	  } else {
+		$delta = ($prev_level - substr_count($child['fullpath'], '/')) * 5;
+		echo str_pad('', $delta, '</ul>') . PHP_EOL; 
+	  }
+	}
+	echo '<li';
+	if ($child['id'] == $page[0]['id']){
+	  echo ' class="active"';
+	}
+	echo '><a href="'. $child['fullpath'] . '">' . $child['title'] . '</a></li>' . PHP_EOL;
+	$prev_id = $child['id'];
+	$prev_parent = $child['parent_id'];
+	$prev_level = substr_count($child['fullpath'], '/');
+  }
+}
+echo '</ul>' . PHP_EOL;
+?>
