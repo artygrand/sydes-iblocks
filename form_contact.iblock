@@ -1,0 +1,28 @@
+<?php
+    if (isset($_POST['hummel']) and $_POST['hummel'] == 'yes'){
+        $stmt = $db -> query("SELECT value FROM config_meta WHERE key = 'form_mail'");
+        $to = $stmt->fetchColumn();
+		$stmt = $db -> query("SELECT value FROM config_meta WHERE key = 'site_title'");
+        $site = $stmt->fetchColumn();
+		foreach($_POST as &$post){$post = htmlspecialchars($post, ENT_QUOTES);}
+        $subj = 'Mail from site ' . $site;
+        $headers = 'Content-type: text/html; charset=utf-8' . "\r\n";
+        $headers .= 'Content-Transfer-Encoding: 8bit' . "\r\n";
+        $mes="<b>Имя:</b> {$_POST['name']}<br><b>email:</b> {$_POST['email']}<br><b>Сообщение:</b> {$_POST['comment']}";
+		$mes = wordwrap($mes, 70);
+        mail($to,$subj,$mes,$headers);
+    }
+?>
+<form action="" method="post">
+	<p><span>Имя:</span><input type="text" name="name" required></p>
+	<p><span>Email:</span><input type="text" name="email" required></p>
+	<p><span>Сообщение:</span><textarea name="comment" required></textarea></p>
+	<p><input type="submit" value="Отправить"></p>
+ </form>
+<script>
+	$('input[name="email"]').click(function(){
+		if(!$('input[name="hummel"]')[0]){
+			$('form').append('<input type="hidden" name="hummel" value="yes">');
+		} 
+	})
+</script>
