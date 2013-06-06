@@ -6,7 +6,7 @@
 * @since 1.6
 */
 if($page[0]['id'] == 1){return;}
-echo '<ul><li><a href="/">Главная</a></li>';
+echo '<ul><li><a href="/">Р“Р»Р°РІРЅР°СЏ</a></li>';
 $stmt = $db -> query("SELECT pages.fullpath, pages_content.title FROM pages, pages_content WHERE '{$page[0]['fullpath']}' LIKE pages.fullpath || '/%' AND pages.id = pages_content.page_id AND pages_content.locale = '{$locale}' ORDER BY pages.fullpath;");
 $breadCrumbs = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 if($breadCrumbs){
