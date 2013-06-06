@@ -1,0 +1,35 @@
+<?php
+$format = '
+<div class="category">
+	<img src="%4$s">
+	<div class="data">
+		<a href="%2$s">%1$s</a>
+		<div>%3$s</div>
+	</div>
+	<div class="price">От %5$s рублей</div>
+</div>
+				';
+
+$stmt = $db -> query("SELECT pages_content.title, pages_content.content, pages.fullpath, pages.id FROM pages_content, pages WHERE pages.parent_id = {$page[0]['id']} AND pages.status = 1 AND pages_content.page_id = pages.id AND pages_content.locale = '{$locale}' ORDER BY id DESC");
+$data = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+if(!$data){
+	return;
+}
+foreach($data as $d){
+	$ids[] = $d['id'];
+}
+$ids = implode(',', $ids);
+$stmt = $db -> query("SELECT page_id, key, value FROM pages_meta WHERE page_id IN({$ids})");
+$meta = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+
+foreach($meta as $m){
+	$metaStructured[$m['page_id']][$m['key']] = $m['value'];
+}
+
+foreach($data as $d){
+	if($pos = strpos($d['content'], '<div tag="more"></div>')){
+		$d['content'] = strip_tags(substr($d['content'], 0, $pos));
+	}
+	printf($format, $d['title'], $d['fullpath'], $d['content'], @$metaStructured[$d['id']]['image'], @$metaStructured[$d['id']]['price']);
+}
+?>
