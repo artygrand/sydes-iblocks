@@ -34,8 +34,8 @@ if ($childs){
 	$prev_parent = $child['parent_id'];
 	$prev_level = substr_count($child['fullpath'], '/');
   }
+  $delta = ($prev_level - 2) * 5;
+  echo str_pad('', $delta, '</ul>') . PHP_EOL;
 }
-$delta = ($prev_level - 2) * 5;
-echo str_pad('', $delta, '</ul>') . PHP_EOL;
 echo '</ul>' . PHP_EOL;
 ?>
