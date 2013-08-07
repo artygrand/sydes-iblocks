@@ -1,0 +1,28 @@
+<?php
+if (isset($_GET['search'])){
+	$text = strip_tags(trim($_GET['search']));
+	$text = str_replace(array("'", '"', "`", '+'), '', $text);
+
+	if (strlen($text) < 3){
+		echo '<p>Слишком короткий поисковый запрос.</p>';
+		return;
+	} elseif (strlen($text) > 128){
+		echo '<p>Слишком длинный поисковый запрос.</p>';
+		return;
+	}
+
+	$stmt = $db -> query("SELECT pages_content.title, pages.fullpath FROM pages_content, pages WHERE (pages_content.title LIKE '%{$text}%' OR pages_content.content LIKE '%{$text}%') AND pages.status = 1 AND pages_content.page_id = pages.id AND pages_content.locale = 'ru' AND pages.type = 'catalog' ORDER BY id LIMIT 100");
+	$data = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+	
+
+	if(!$data){
+		echo '<p>А вот ничего и не нашли. Нету у нас <strong>' . $text . '</strong></p>';
+	}
+	else{
+		echo "<p>По вашему запросу <strong>&quot;{$text}&quot;</strong> найдено " . get_correct_str(count($data), 'совпадение', 'совпадения', 'совпадений') . "</p>";
+		foreach($data as $d){
+			echo '<p><a href="' . $d['fullpath'] . '">' . $d['title'] . '</a></p>';
+		}
+	}
+}
+?>
