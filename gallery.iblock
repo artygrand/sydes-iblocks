@@ -8,7 +8,7 @@
 */
 $pic = '<a href="%1$s" rel="lightbox[gal]"><img src="%2$s" alt="%1$s"></a>';
 
-if(!isset($folder) or !is_dir('upload/images/' . $folder)){
+if(!isset($folder) or $folder == '' or !is_dir('upload/images/' . $folder)){
 	return;
 }
 	$imagePerPage = 1000;
