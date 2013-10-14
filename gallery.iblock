@@ -1,41 +1,88 @@
 <?php
 /*
 * Simply gallery infoblock
-* works with ckfinder(preview) and lightbox2(lightbox[gal])
+* works with lightbox2 or Shadowbox (lightbox[gal])
 *
 * @author ArtyGrand
-* @since 1.2
+* @version 3.1
+*
+* Use {iblock:gallery?folder=dir/subdir&width=100&height=100&excl=/path/to/pic}
 */
-$pic = '<a href="%1$s" rel="lightbox[gal]"><img src="%2$s" alt="%1$s"></a>';
-
-if(!isset($folder) or $folder == '' or !is_dir('upload/images/' . $folder)){
+if(!isset($folder) and isset($meta['folder'])){
+	$folder = $meta['folder'];
+}
+if(empty($folder) or !is_dir('upload/images/' . $folder)){
 	return;
 }
-	$imagePerPage = 1000;
-	$files = array();
-	foreach(glob('upload/images/' . $folder . '/{*.jpg,*.jpeg,*.gif,*.png}', GLOB_BRACE) as $image){
-		if($excl == '/' . $image){continue;}
-		$thumb = str_replace('upload/images/', 'upload/_thumbs/Images/', $image);
-		if (is_file($thumb)){
-			$files[$image]['thumb'] = $thumb;
+
+$width = isset($width) ? $width : 150;
+$height = isset($height) ? $height : 150;
+$imagePerPage = 50;
+$format = '<a href="%1$s" rel="lightbox[gal]" class="thumbnail"><img src="thumb/' . $width . 'x' . $height . '/%1$s" alt=""></a>';
+
+
+foreach(glob('upload/images/' . $folder . '/{*.jpg,*.jpeg,*.gif,*.png}', GLOB_BRACE) as $image){
+	if(isset($excl) and $excl == '/' . $image) continue;
+	$imgs[] = $image;
+}
+
+$skip = (!empty($_GET['skip']) and $_GET['skip'] > 0) ? $_GET['skip'] : 0;
+$count = count($imgs);
+$imgs = array_slice($imgs, $skip, $imagePerPage, true);
+
+$p = '';
+foreach($imgs as $img){
+	$p .= sprintf($format, $img);
+}
+$uri = explode('?', $_SERVER['REQUEST_URI']);
+$uri = $uri[0];
+$count = ceil($count / $imagePerPage);
+$p .= '<div class="paginator">';
+/*simply paginator*/
+if($count > 1 and $count < 8){
+	for ($i = 0; $i <= $count-1; $i++) {
+		$skipy = $i * $imagePerPage;
+		if ($skip == $skipy){
+			$p .= '<a class="active" href="' . $uri . '#">' . ($i+1) . '</a>';
 		} else {
-			$files[$image]['thumb'] = $image;
+			$p .= '<a href="' . $uri . '?skip=' . $skipy . '">' . ($i+1) . '</a>';
 		}
-		$files[$image]['path'] = $image;
 	}
-	$countOfPics = count($files);
-	if (!empty($_GET['skip']) and $_GET['skip'] > -1){
-		$skip = $_GET['skip'];
-	} else {
-		$skip = 0;
+/*beautiful paginator*/
+} elseif ($count >= 8){
+	$p .= '<a href="' . $uri . '?skip=0"><<</a>';
+
+	if ($skip <= 3){
+		$from = 0;
+		$to = 6;
+	} elseif ($skip > 3 and $skip <= $count-4){
+		$from = $skip - 3;
+		$to = $from + 6;
+	} elseif ($skip > $count-4){
+		$from = $count - 7;
+		$to = $count-1;
 	}
-	$files = array_slice($files, $skip, $imagePerPage, true);
 
-	$gallcode = '' . PHP_EOL;
-
-	foreach($files as $img){
-		$gallcode .= sprintf($pic, $img['path'], $img['thumb']);
+	for ($i = $from; $i <= $to; $i++){
+		$skipy = $i * $imagePerPage;
+		if ($skip == $skipy){
+			$p .= '<a class="active" href="' . $uri . '#">' . ($i+1) . '</a>';
+		} else {
+			$p .= '<a href="' . $uri . '?skip=' . $skipy . '">' . ($i+1) . '</a>';
+		}
 	}
-
-	echo $gallcode;
+	
+	$p .= '<a href="' . $uri . '?skip=' . ($count - 1) * $imagePerPage . '">>></a>';
+}
+$p .= '</div>';
+?>
+<style>
+.paginator{text-align:center;margin:15px 0;}
+.paginator a{padding:5px;}
+.paginator .active{font-weight:bold;text-decoration:none;}
+.thumbnail{margin-left:8px;}
+</style>
+<?php
+echo $p;
+unset($width, $height, $format, $p);
 ?>
