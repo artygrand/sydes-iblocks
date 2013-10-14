@@ -1,0 +1,23 @@
+<?php
+/**
+* Gets title and link from child pages
+* Use {iblock:child_links?parent=4&limit=10}
+*/
+
+$format = '<li><a href="%2$s">%1$s</a></li>';
+
+$limit = isset($limit) ? $limit : 5;
+$parent = isset($parent) ? $parent : $page[0]['parent_id'];
+$stmt = $db -> query("SELECT pages_content.title, pages.fullpath FROM pages_content, pages
+		WHERE pages.parent_id = {$parent} AND pages.id <> {$page[0]['id']} AND pages.status = 1 AND pages_content.page_id = pages.id AND pages_content.locale = '{$locale}' ORDER BY id DESC LIMIT {$limit}");
+$data = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+if(!$data){
+	return;
+}
+
+echo ' <ul class="links">';
+foreach($data as $d){
+	printf($format, $d['title'], $d['fullpath']);
+}
+echo '</ul>';
+?>

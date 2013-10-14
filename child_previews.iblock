@@ -1,0 +1,39 @@
+<?php
+/**
+* Gets preview text, title and link from child pages
+* Use {iblock:child_previews?what=all}
+*/
+
+$format = '<section><h2>%1$s</h2><p>%3$s [...] <a href="%2$s">Далее</a></p></section>';
+
+if(isset($what) and $what == 'all'){
+	$where = "pages.fullpath LIKE '{$page[0]['fullpath']}/%' AND pages.template != 'page'";
+} else {
+	$where = "pages.parent_id = {$page[0]['id']}";
+}
+
+$stmt = $db -> query("SELECT pages_content.title, pages_content.content, pages.fullpath, pages.id FROM pages_content, pages
+		WHERE {$where} AND pages.status = 1 AND pages_content.page_id = pages.id AND pages_content.locale = '{$locale}' ORDER BY id DESC");
+$data = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+if(!$data){
+	return;
+}
+
+foreach($data as $d){
+	$ids[] = $d['id'];
+}
+$ids = implode(',', $ids);
+$stmt = $db -> query("SELECT page_id, key, value FROM pages_meta WHERE page_id IN({$ids})");
+$meta = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+
+foreach($meta as $m){
+	$ms[$m['page_id']][$m['key']] = $m['value'];
+}
+mb_internal_encoding('UTF-8');
+
+foreach($data as $d){
+	$d['content'] = mb_substr(strip_tags($d['content']), 0, 400);
+	printf($format, $d['title'], $d['fullpath'], $d['content']);
+}
+
+?>
