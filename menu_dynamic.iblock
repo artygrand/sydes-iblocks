@@ -34,34 +34,33 @@ if (isset($show) and $show = 'all'){
 }
 $childs = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
-if ($childs){
-	$menu = (isset($parent_title) and $show_parent_title) ? "<h2>$parent_title</h2>\n" : '';
-	$menu .= '<ul class="dmenu">' . PHP_EOL;
+if (!$childs) return;
+$menu = (isset($parent_title) and $show_parent_title) ? "<h2>$parent_title</h2>\n" : '';
+$menu .= '<ul class="dmenu">' . PHP_EOL;
 
-	$prev_id = $childs[0]['id'];
-	$prev_parent = $childs[0]['parent_id'];
+$prev_id = $childs[0]['id'];
+$prev_parent = $childs[0]['parent_id'];
 
-	foreach($childs as $child){
-		if($prev_parent != $child['parent_id']){
-			if ($prev_id == $child['parent_id']){
-				$menu = substr($menu, 0, -5); 
-				$menu .= '<ul>' . PHP_EOL;
-			} else {
-				$delta = ($prev_level - substr_count($child['fullpath'], '/')) * 5;
-				$menu .= str_pad('', $delta, '</ul>') . PHP_EOL . '</li>' . PHP_EOL; 
-			}
+foreach($childs as $child){
+	if($prev_parent != $child['parent_id']){
+		if ($prev_id == $child['parent_id']){
+			$menu = substr($menu, 0, -5); 
+			$menu .= '<ul>' . PHP_EOL;
+		} else {
+			$delta = ($prev_level - substr_count($child['fullpath'], '/')) * 5;
+			$menu .= str_pad('', $delta, '</ul>') . PHP_EOL . '</li>' . PHP_EOL; 
 		}
-		$menu .= '<li';
-		if ($child['id'] == $page[0]['id']){
-			$menu .= ' class="active"';
-		}
-		$menu .= '><a href="'. $child['fullpath'] . '">' . $child['title'] . '</a></li>';
-		$prev_id = $child['id'];
-		$prev_parent = $child['parent_id'];
-		$prev_level = substr_count($child['fullpath'], '/');
 	}
-	
-	$delta = ($prev_level - 2) * 5;
-	echo $menu, str_pad('', $delta, '</ul>'), PHP_EOL, '</ul>', PHP_EOL;
+	$menu .= '<li';
+	if (strpos($page[0]['fullpath'], $child['fullpath']) !== false){
+		$menu .= ' class="active"';
+	}
+	$menu .= '><a href="'. $child['fullpath'] . '">' . $child['title'] . '</a></li>';
+	$prev_id = $child['id'];
+	$prev_parent = $child['parent_id'];
+	$prev_level = substr_count($child['fullpath'], '/');
 }
+
+$delta = ($prev_level - 2) * 5;
+echo $menu, str_pad('', $delta, '</ul>'), PHP_EOL, '</ul>', PHP_EOL;
 ?>
