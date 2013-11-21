@@ -1,0 +1,19 @@
+<iframe id="ytb" allowfullscreen="" frameborder="0" height="360" src="//www.youtube.com/embed/hello" width="640"></iframe>
+<div class="playlist">
+<?php
+$xml = file_get_contents('https://gdata.youtube.com/feeds/api/playlists/'.$list.'?v=2');
+$movies = new SimpleXMLElement($xml);
+
+foreach($movies->entry as $entry){
+  $attr = $entry->link[2]->attributes();
+  $vid = substr($attr['href'], -11);
+  echo '<div class="video" data-vid="' . $vid . '"><img src="https://i1.ytimg.com/vi/' . $vid . '/default.jpg"><span>' . $entry->title . '</span></div>';
+}
+?>
+</div>
+
+
+<script>
+$('#ytb').attr('src', '//www.youtube.com/embed/'+$('.video').eq(0).data('vid'))
+$('.video').click(function(){$('#ytb').attr('src', '//www.youtube.com/embed/'+$(this).data('vid'))})
+</script>
