@@ -1,6 +1,6 @@
 <?php
     if (isset($_POST['hummel']) and $_POST['hummel'] == 'yes'){
-		foreach($_POST as &$post){$post = htmlspecialchars($post, ENT_QUOTES);}
+        foreach($_POST as &$post){$post = htmlspecialchars($post, ENT_QUOTES);}
         $subj = 'Mail from site ' . $meta['site_title'];
         $headers = 'Content-type: text/html; charset=utf-8' . "\r\n";
         $headers .= 'Content-Transfer-Encoding: 8bit' . "\r\n";
@@ -9,7 +9,8 @@
 <b>email:</b> {$_POST['email']}<br>
 <b>Сообщение:</b> {$_POST['comment']}
 ";
-		$mes = wordwrap($mes, 70);
+        $mes = wordwrap($mes, 70);
+        unset($_POST['hummel']);
         mail($meta['form_mail'],$subj,$mes,$headers);
     }
 ?>
