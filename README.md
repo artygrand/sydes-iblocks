@@ -1,4 +1,4 @@
-Infoblocks for SyDES
+Infoblocks for SyDES v1.8
 =============
 
 Upload any file to system/iblocks/ for adding infoblock.
